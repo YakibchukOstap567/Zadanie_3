@@ -51,6 +51,40 @@ void ctwl_print(CTWL *list) {
 }
 
 CTWL *ctwl_sum_demodulation(CTWL *list, unsigned int period) {
+		
+	if (!list || !list->cur || period == 0 || list->size % period != 0)
+        return NULL;
+	
+	unsigned int n = list -> size;
+	unsigned int result_size = n / period;
+	
+	CTWL* list_2 = ctwl_create_empty();
+	if (!list_2) return NULL;
+	
+	TWN* current = list ->cur;
+	
+	for(unsigned int i = 0; i < result_size; i++){
+	    int suma = 0;
+		for(unsigned int j = 0; j < period; j++){
+			suma += current -> data;
+			current = current -> next;
+      	}
+      	
+      	if (!ctwl_insert(list_2, suma)) {
+            while (list_2 -> size > 0) {
+                TWN* temp = list_2 -> cur;
+                temp -> prev -> next = temp -> next;
+                temp -> next -> prev = temp -> prev;
+                list_2 -> cur = temp -> next;
+                free(temp);
+                list_2 -> size--;
+            }
+            free(list_2);
+            return NULL;
+        }
+	}
+	
+	return list_2;
 }
 
 int main() {
@@ -64,4 +98,15 @@ int main() {
 	puts("Povodny zoznam:\n");
 	
 	ctwl_print(list);
+	
+	CTWL* list_2 = ctwl_sum_demodulation(list, 2);
+	
+	if (list_2) {
+		puts("Demodulovany zoznam (period = 2):\n");
+		ctwl_print(list_2);
+	} else {
+		puts("Chyba: demodulacia zlyhala.\n");
+	}
+	
+	return 0;
 }
